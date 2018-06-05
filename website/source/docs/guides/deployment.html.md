@@ -1,12 +1,12 @@
 ---
 layout: "docs"
-page_title: "Production Deployment"
+page_title: "Reference Architecture"
 sidebar_current: "docs-guides-deployment"
 description: |-
-  Best practice approaches for Consul production deployments.
+  Best practice approaches for Consul production architecture.
 ---
 
-# Consul Production Deployment Guide
+# Consul Reference Architecture
 
 As applications are migrated to dynamically provisioned infrastructure, scaling services and managing the communications between them becomes challenging. Consul’s service discovery capabilities provide the connectivity between dynamic applications. Consul also monitors the health of each node and its applications to ensure that only healthy service instances are discovered. Consul’s distributed runtime configuration store allows updates across global infrastructure.
 
