@@ -37,7 +37,7 @@ A Consul cluster (typically 3 or 5 servers plus client agents) may be deployed i
 
 ### Single Datacenter
 
-A single Consul cluster is recommended for applications deployed in the same datacenter. Consul supports traditional three-tier applications as well as microservices.
+A single Consul cluster is recommended for applications deployed in the same datacenter.
 
 Typically, there must be three or five servers to balance between availability and performance. These servers together run the Raft-driven consistent state store for catalog, session, prepared query, ACL, and KV updates.
 
