@@ -43,7 +43,7 @@ Typically, there must be three or five servers to balance between availability a
 
 The recommended maximum cluster size for a single datacenter is `5,000` nodes. For a write-heavy and/or a read-heavy cluster, the maximum number of nodes may need to be reduced further, considering the impact of the number and the size of KV pairs and the number of watches. The time taken for gossip to converge increases as more client machines are added. Similarly, the time taken by the new server to join an existing multi-thousand node cluster with a large KV store and update rate may increase as they are replicated to the new server’s log.
 
--> **TIP** For write-heavy clusters, consider scaling vertically with larger machine instances and lower latency storage.
+~> For write-heavy clusters, consider scaling vertically with larger machine instances and lower latency storage.
 
 One must take care to use service tags in a way that assists with the kinds of queries that will be run against the cluster. If two services (e.g. blue and green) are running on the same cluster, appropriate service tags must be used to identify between them. If a query is made without tags, nodes running both blue and green services may show up in the results of the query.
 
@@ -53,7 +53,7 @@ In cases where a full mesh among all agents cannot be established due to network
 
 Consul clusters in different datacenters running the same service can be joined by WAN links. The clusters operate independently and only communicate over the WAN on port `8302`. Unless explicitly configured via CLI or API, the Consul server will only return results from the local datacenter. Consul does not replicate data between multiple datacenters. The [consul-replicate](https://github.com/hashicorp/consul-replicate) tool can be used to replicate the KV data periodically.
 
--> **TIP** A good practice is to enable TLS server name checking to avoid accidental cross-joining of agents.
+-> A good practice is to enable TLS server name checking to avoid accidental cross-joining of agents.
 
 Advanced federation can be achieved with [Network Areas](/api/operator/area.html) (Enterprise).
 
@@ -87,7 +87,7 @@ Layer 3 restricts the ARP requests to a smaller segment of the network. Traffic 
 |HTTP API|8500|`-1` to disable|Used by clients to talk to the HTTP API. TCP only.|
 |DNS&nbsp;Interface|8600|`-1` to disable||
 
--> **TIP** As mentioned in the [datacenter design section](#1-1-1-single-datacenter), network areas and network segments can be used to prevent opening up firewall ports between different subnets.
+-> As mentioned in the [datacenter design section](#1-1-1-single-datacenter), network areas and network segments can be used to prevent opening up firewall ports between different subnets.
 
 ### RAFT Tuning
 
