@@ -29,7 +29,7 @@ The following instance configurations are recommended.
 
 The **small size** instance configuration is appropriate for most initial production deployments, or for development/testing environments. The large size is for production environments where there is a consistently high workload. Suggested instance types are provided for common platforms, but do refer to platform documentation for up-to-date instance types that align with the recommended resources.
 
-~> **NOTE** For high workloads, ensure that the disks support high IOPS to keep up with the high Raft log update rate.
+~> **NOTE** For large workloads, ensure that the disks support a high number of IOPS to keep up with the rapid Raft log update rate.
 
 ## Datacenter Design
 
