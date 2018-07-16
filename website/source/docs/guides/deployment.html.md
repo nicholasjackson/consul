@@ -12,7 +12,7 @@ The goal of this document is to recommend best practice approaches for Consul pr
 
 This document assumes a basic working knowledge of Consul.
 
-## 1.0 System Requirements
+## System Requirements
 
 Consul server agents are responsible for maintaining the cluster state, responding to RPC queries (read operations), and for processing all write operations. Given that Consul server agents do most of the heavy lifting, server sizing is critical for the overall performance efficiency and health of the Consul cluster.
 
@@ -31,11 +31,11 @@ The **small size** instance configuration is appropriate for most initial produc
 
 ~> **NOTE** For high workloads, ensure that the disks support high IOPS to keep up with the high Raft log update rate.
 
-## 1.1 Datacenter Design
+## Datacenter Design
 
 A Consul cluster (typically 3 or 5 servers plus client agents) may be deployed in a single physical datacenter or it may span multiple datacenters. For a large cluster with high runtime reads and writes, deploying servers in the same physical location improves performance. In cloud environments, a single datacenter may be deployed across multiple availability zones i.e. each server in a separate availability zone within a single EC2 instance. Consul also supports multi-datacenter deployments via two separate clusters joined by WAN links. In some cases, one may also deploy two or more Consul clusters in the same LAN environment.
 
-### 1.1.1 Single Datacenter
+### Single Datacenter
 
 A single Consul cluster is recommended for applications deployed in the same datacenter. Consul supports traditional three-tier applications as well as microservices.
 
@@ -49,7 +49,7 @@ One must take care to use service tags in a way that assists with the kinds of q
 
 In cases where a full mesh among all agents cannot be established due to network segmentation, Consul’s own [network segments](/docs/enterprise/network-segments/index.html) can be used. Network segments is an Enterprise feature that allows the creation of multiple tenants which share Raft servers in the same cluster. Each tenant has its own gossip pool and doesn’t communicate with the agents outside this pool. The KV store, however, is shared between all tenants. If Consul network segments cannot be used, isolation between agents can be accomplished by creating discrete [Consul datacenters](/docs/guides/datacenters.html).
 
-### 1.1.2 Multiple Datacenters
+### Multiple Datacenters
 
 Consul clusters in different datacenters running the same service can be joined by WAN links. The clusters operate independently and only communicate over the WAN on port `8302`. Unless explicitly configured via CLI or API, the Consul server will only return results from the local datacenter. Consul does not replicate data between multiple datacenters. The [consul-replicate](https://github.com/hashicorp/consul-replicate) tool can be used to replicate the KV data periodically.
 
@@ -67,7 +67,7 @@ Consul’s [prepared queries](/api/query.html) allow clients to do a datacenter 
 
 Prepared queries, by default, resolve the query in the local datacenter first. Querying KV store features is not supported by the prepared query. Prepared queries work with ACL. Prepared query config/templates are maintained consistently in Raft and are executed on the servers.
 
-## 1.2 Network Connectivity
+## Network Connectivity
 
 LAN gossip occurs between all agents in a single datacenter with each agent sending a periodic probe to random agents from its member list. The initial probe is sent over UDP every second. If a node fails to acknowledge within `200ms`, the agent pings over TCP. If the TCP probe fails (10 second timeout), it asks configurable number of random nodes to probe the same node (also known as an indirect probe). If there is no response from the peers regarding the status of the node, that agent is marked as down.
 
@@ -89,7 +89,7 @@ Layer 3 restricts the ARP requests to a smaller segment of the network. Traffic 
 
 -> **TIP** As mentioned in the [datacenter design section](#1-1-1-single-datacenter), network areas and network segments can be used to prevent opening up firewall ports between different subnets.
 
-### 1.2.1 RAFT Tuning
+### RAFT Tuning
 
 Leader elections can be affected by network communication issues between servers. If the cluster spans multiple zones, the network latency between them must be taken into consideration and the `raft_multiplier` must be adjusted accordingly.
 
@@ -117,7 +117,7 @@ The trade off is between leader stability and time to recover from an actual lea
 
 Leadership instability can also be caused by under-provisioned CPU resources and is more likely in environments where CPU cycles are shared with other workloads. In order for a server to remain the leader, it must send frequent heartbeat messages to all other servers every few hundred milliseconds. If some number of these are missing or late due to the leader not having sufficient CPU to send them on time, the other servers will detect it as failed and hold a new election.
 
-## 1.3 Performance Tuning
+## Performance Tuning
 
 Consul is write limited by disk I/O and read limited by CPU. Memory requirements will be dependent on the total size of KV pairs stored and should be sized according to that data (as should the hard drive storage). The limit on a key’s value size is `512KB`.
 
@@ -145,7 +145,7 @@ To prevent any CPU spikes from a misconfigured client, RPC requests to the serve
 
 In addition, two [performance indicators](/docs/agent/telemetry.html) &mdash; `consul.runtime.alloc_bytes` and `consul.runtime.heap_objects` &mdash; can help diagnose if the current sizing is not adequately meeting the load.
 
-## 1.4 Backups
+## Backups
 
 Creating server backups is an important step in production deployments. Backups provide a mechanism for the server to recover from an outage (network loss, operator error, or a corrupted data directory). All agents write to the `-data-dir` before commit. This directory persists the local agent’s state and &mdash; in the case of servers &mdash; it also holds the Raft information.
 
@@ -159,7 +159,7 @@ By default, all snapshots are taken using `consistent` mode where requests are f
 
 This spreads the load across nodes at the possible expense of losing full consistency guarantees. Typically this means that a very small number of recent writes may not be included. The omitted writes are typically limited to data written in the last `100ms` or less from the recovery point. This is usually suitable for disaster recovery. However, the system can’t guarantee how stale this may be if executed against a partitioned server.
 
-## 1.5 Node Removal
+## Node Removal
 
 Failed nodes will be automatically removed after 72 hours. This can happen if a node does not shutdown cleanly or if the process supervisor does not give the agent long enough to gracefully leave the cluster. Until then, Consul periodically tries to reconnect to the failed node. After 72 hours, Consul will reap failed nodes and stop trying to reconnect.
 
