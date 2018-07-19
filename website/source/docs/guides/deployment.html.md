@@ -89,7 +89,7 @@ Layer 3 restricts the ARP requests to a smaller segment of the network. Traffic 
 
 ### Raft Tuning
 
-Leader elections can be affected by network communication issues between servers. If the cluster spans multiple zones, the network latency between them must be taken into consideration and the `raft_multiplier` must be adjusted accordingly.
+Leader elections can be affected by network communication issues between servers. If the cluster spans multiple zones, the network latency between them must be taken into consideration and the [`raft_multiplier`](/docs/agent/options.html#raft_multiplier) must be adjusted accordingly.
 
 By default, the recommended value for production environments is `1`. This value must take into account the network latency between the servers and the read/write load on the servers.
 
