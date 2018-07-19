@@ -8,7 +8,7 @@ description: |-
 
 # Consul Production Deployment
 
-The goal of this document is to recommend best practice approaches for Consul production deployments. The guide provides recommendations on system requirements, datacenter design, networking, and performance optimizations for Consul cluster based on the latest Consul (1.2.1) release.
+The goal of this document is to recommend best practice approaches for Consul production deployments. The guide provides recommendations on system requirements, datacenter design, networking, and performance optimizations for Consul cluster based on the latest Consul release.
 
 This document assumes a basic working knowledge of Consul.
 
