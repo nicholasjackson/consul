@@ -33,7 +33,11 @@ The **small size** instance configuration is appropriate for most initial produc
 
 ## Datacenter Design
 
-A Consul cluster (typically 3 or 5 servers plus client agents) may be deployed in a single physical datacenter or it may span multiple datacenters. For a large cluster with a high number of reads and writes, deploying servers in the same physical location improves performance. In cloud environments, a single datacenter may be deployed across multiple availability zones i.e. each server in a separate availability zone within a single EC2 instance. Consul also supports multi-datacenter deployments via two separate clusters joined by WAN links. In some cases, one may also deploy two or more Consul clusters in the same LAN environment.
+Consul may be deployed in a single physical datacenter or it may span multiple datacenters.
+
+For a large cluster with a high number of reads and writes, deploying servers in the same physical location improves performance. In cloud environments, a single datacenter may be deployed across multiple availability zones i.e. each server in a separate availability zone within a single EC2 instance. Consul also supports multi-datacenter deployments via two separate clusters joined by WAN links. In some cases, one may also deploy two or more Consul clusters in the same LAN environment.
+
+The Raft consensus protocol requires low latency connectivity between a single set of servers. This may be achieved by locating servers within the same datacenter or across availability zones in a single region (which provides low latency, non-WAN connectivity).
 
 ### Single Datacenter
 
