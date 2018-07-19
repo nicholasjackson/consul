@@ -169,7 +169,7 @@ Alternately, servers can be removed using [`remove-peer`](/docs/commands/operato
 
 ~> **NOTE** `remove-peer` only works on clusters that still have a leader.
 
-If the leader is affected by an outage, then [manual recovery](/docs/guides/outage.html#manual-recovery-using-peers-json) needs to be done.
+If the leader is affected by an outage, then read the [outage recovery](/docs/guides/outage.html) guide. Depending on your scenario, several options for recovery may be possible.
 
 To remove all agents that accidentally joined the wrong set of servers, clear out the contents of the data directory (`-data-dir`) on both client and server nodes.
 
