@@ -45,7 +45,7 @@ A single Consul cluster is recommended for applications deployed in the same dat
 
 Typically, there must be three or five servers to balance between availability and performance. These servers together run the Raft-driven consistent state store for catalog, session, prepared query, ACL, and KV updates.
 
-The recommended maximum cluster size for a single datacenter is `5,000` nodes. For a write-heavy and/or a read-heavy cluster, the maximum number of nodes may need to be reduced further, considering the impact of the number and the size of KV pairs and the number of watches. The time taken for gossip to converge increases as more client machines are added. Similarly, the time taken by the new server to join an existing multi-thousand node cluster with a large KV store and update rate may increase as they are replicated to the new server’s log.
+Consul is proven to work well with up to `5,000` nodes in a single datacenter gossip pool. Some deployments have stretched this number much further but they require care and testing to ensure they remain reliable and can converge their cluster state quickly. It's highly recommended that clusters are increased in size gradually when approaching or exceeding `5,000` nodes.
 
 ~> For write-heavy clusters, consider scaling vertically with larger machine instances and lower latency storage.
 
