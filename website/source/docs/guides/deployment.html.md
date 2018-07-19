@@ -61,7 +61,7 @@ Network areas allows peering between datacenters to make the services discoverab
 
 Consul’s [prepared queries](/api/query.html) allow clients to do a datacenter failover for service discovery. For example, if a service `payment` in the local datacenter dc1 goes down, a prepared query lets users define a geographic fallback order to the nearest datacenter to check for healthy instances of the same service.
 
-~> **NOTE** Consul clusters must be WAN linked for a prepared query to take effect.
+~> **NOTE** Consul clusters must be WAN linked for a prepared query to work across datacenters.
 
 Prepared queries, by default, resolve the query in the local datacenter first. Querying KV store features is not supported by the prepared query. Prepared queries work with ACL. Prepared query config/templates are maintained consistently in Raft and are executed on the servers.
 
