@@ -87,7 +87,7 @@ Layer 3 restricts the ARP requests to a smaller segment of the network. Traffic 
 
 -> As mentioned in the [datacenter design section](#1-1-1-single-datacenter), network areas and network segments can be used to prevent opening up firewall ports between different subnets.
 
-### RAFT Tuning
+### Raft Tuning
 
 Leader elections can be affected by network communication issues between servers. If the cluster spans multiple zones, the network latency between them must be taken into consideration and the `raft_multiplier` must be adjusted accordingly.
 
