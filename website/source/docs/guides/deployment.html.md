@@ -123,7 +123,7 @@ Consul is write limited by disk I/O and read limited by CPU. Memory requirements
 
 For **write-heavy** workloads, the total RAM available for overhead must approximately be equal to
 
-    RAM NEEDED = number of keys * average key size * 2-3x
+    RAM NEEDED = number of keys * (average key + value size) * 2-3x
 
 Since writes must be synced to disk (persistent storage) on a quorum of servers before they are committed, deploying a disk with high write throughput (or an SSD) will enhance performance on the write side. ([Documentation](/docs/agent/options.html#\_data\_dir))
 
@@ -136,6 +136,8 @@ It should be noted that `stale` is not appropriate for coordination where strong
 **Read-heavy** clusters may take advantage of the [enhanced reading](/docs/enterprise/read-scale/index.html) feature (Enterprise) for better scalability. This feature allows additional servers to be introduced as non-voters. Being a non-voter, the server will still participate in data replication, but it will not block the leader from committing log entries.
 
 Consul’s agents use network sockets for communicating with the other nodes (gossip) and with the server agent. In addition, file descriptors are also opened for watch handlers, health checks, and log files. For a **write heavy** cluster, the `ulimit` size must be increased from the default  value (`1024`) to prevent the leader from running out of file descriptors.
+
+A safe limit to set for `ulimit` will depend heavily on cluster size and workload but there is usually no downside to being liberal and allowing tens of thousands of descriptors for large servers (or even more).
 
 To prevent any CPU spikes from a misconfigured client, RPC requests to the server should be [rate limited](/docs/agent/options.html#limits)
 
