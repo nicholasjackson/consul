@@ -47,6 +47,9 @@ type ProxyConfig struct {
 	// enable proxies in network namespaces to bind to a different port
 	// than the host port being advertised.
 	BindPort int `mapstructure:"bind_port"`
+
+	// WASMFilters allow Envoy WASM filters to be registers in the HTTP filtler chain
+	WASMFilters []WASMFilter `mapstructure:"wasm_filters"`
 }
 
 // ParseProxyConfig returns the ProxyConfig parsed from the an opaque map. If an
@@ -141,6 +144,9 @@ type UpstreamConfig struct {
 	// will be ignored if a discovery chain is active.
 	ClusterJSON string `mapstructure:"envoy_cluster_json"`
 
+	// WASMFilters allow Envoy WASM filters to be registers in the HTTP filtler chain
+	WASMFilters []WASMFilter `mapstructure:"wasm_filters"`
+
 	// Protocol describes the upstream's service protocol. Valid values are "tcp",
 	// "http" and "grpc". Anything else is treated as tcp. The enables protocol
 	// aware features like per-request metrics and connection pooling, tracing,
@@ -154,6 +160,11 @@ type UpstreamConfig struct {
 	// Limits are the set of limits that are applied to the proxy for a specific upstream of a
 	// service instance.
 	Limits UpstreamLimits `mapstructure:"limits"`
+}
+
+type WASMFilter struct {
+	Name     string `mapstructure:"name"`
+	Location string `mapstructure:"location"`
 }
 
 func ParseUpstreamConfigNoDefaults(m map[string]interface{}) (UpstreamConfig, error) {

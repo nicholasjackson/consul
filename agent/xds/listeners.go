@@ -359,7 +359,7 @@ func (s *Server) makePublicListener(cfgSnap *proxycfg.ConfigSnapshot, token stri
 		l = makeListener(PublicListenerName, addr, port)
 
 		filter, err := makeListenerFilter(
-			false, cfg.Protocol, "public_listener", LocalAppClusterName, "", "", true)
+			false, cfg.Protocol, "public_listener", LocalAppClusterName, "", "", cfg.WASMFilters, true)
 		if err != nil {
 			return nil, err
 		}
@@ -403,7 +403,7 @@ func (s *Server) makeExposedCheckListener(cfgSnap *proxycfg.ConfigSnapshot, clus
 
 	filterName := fmt.Sprintf("exposed_path_filter_%s_%d", strippedPath, path.ListenerPort)
 
-	f, err := makeListenerFilter(false, path.Protocol, filterName, cluster, "", path.Path, true)
+	f, err := makeListenerFilter(false, path.Protocol, filterName, cluster, "", path.Path, nil, true)
 	if err != nil {
 		return nil, err
 	}
@@ -472,7 +472,7 @@ func (s *Server) makeUpstreamListenerIgnoreDiscoveryChain(
 
 	l := makeListener(upstreamID, addr, u.LocalBindPort)
 	filter, err := makeListenerFilter(
-		false, cfg.Protocol, upstreamID, clusterName, "upstream_", "", false)
+		false, cfg.Protocol, upstreamID, clusterName, "upstream_", "", cfg.WASMFilters, false)
 	if err != nil {
 		return nil, err
 	}
@@ -639,7 +639,7 @@ func (s *Server) makeUpstreamListenerForDiscoveryChain(
 	}
 
 	filter, err := makeListenerFilter(
-		useRDS, proto, upstreamID, clusterName, "upstream_", "", false)
+		useRDS, proto, upstreamID, clusterName, "upstream_", "", cfg.WASMFilters, false)
 	if err != nil {
 		return nil, err
 	}
@@ -656,15 +656,15 @@ func (s *Server) makeUpstreamListenerForDiscoveryChain(
 
 func makeListenerFilter(
 	useRDS bool,
-	protocol, filterName, cluster, statPrefix, routePath string, ingress bool) (envoylistener.Filter, error) {
+	protocol, filterName, cluster, statPrefix, routePath string, wasmFilters []WASMFilter, ingress bool) (envoylistener.Filter, error) {
 
 	switch protocol {
 	case "grpc":
-		return makeHTTPFilter(useRDS, filterName, cluster, statPrefix, routePath, ingress, true, true)
+		return makeHTTPFilter(useRDS, filterName, cluster, statPrefix, routePath, nil, ingress, true, true)
 	case "http2":
-		return makeHTTPFilter(useRDS, filterName, cluster, statPrefix, routePath, ingress, false, true)
+		return makeHTTPFilter(useRDS, filterName, cluster, statPrefix, routePath, nil, ingress, false, true)
 	case "http":
-		return makeHTTPFilter(useRDS, filterName, cluster, statPrefix, routePath, ingress, false, false)
+		return makeHTTPFilter(useRDS, filterName, cluster, statPrefix, routePath, wasmFilters, ingress, false, false)
 	case "tcp":
 		fallthrough
 	default:
@@ -711,6 +711,7 @@ func makeStatPrefix(protocol, prefix, filterName string) string {
 func makeHTTPFilter(
 	useRDS bool,
 	filterName, cluster, statPrefix, routePath string,
+	wasmFilters []WASMFilter,
 	ingress, grpc, http2 bool,
 ) (envoylistener.Filter, error) {
 	op := envoyhttp.INGRESS
@@ -722,14 +723,75 @@ func makeHTTPFilter(
 		proto = "grpc"
 	}
 
-	cfg := &envoyhttp.HttpConnectionManager{
-		StatPrefix: makeStatPrefix(proto, statPrefix, filterName),
-		CodecType:  envoyhttp.AUTO,
-		HttpFilters: []*envoyhttp.HttpFilter{
-			&envoyhttp.HttpFilter{
-				Name: "envoy.router",
+	filters := []*envoyhttp.HttpFilter{}
+	// parse the filters json into the correct struct
+	for _, f := range wasmFilters {
+		config := &types.Struct{Fields: map[string]*types.Value{}}
+
+		config.Fields["name"] = &types.Value{Kind: &types.Value_StringValue{StringValue: f.Name}}
+		config.Fields["root_id"] = &types.Value{Kind: &types.Value_StringValue{StringValue: f.Name}}
+
+		config.Fields["vm_config"] = &types.Value{
+			Kind: &types.Value_StructValue{
+				StructValue: &types.Struct{
+					Fields: map[string]*types.Value{
+						"vm_id":   &types.Value{Kind: &types.Value_StringValue{StringValue: "vm_id"}},
+						"runtime": &types.Value{Kind: &types.Value_StringValue{StringValue: "envoy.wasm.runtime.v8"}},
+						"code": &types.Value{
+							Kind: &types.Value_StructValue{
+								StructValue: &types.Struct{
+									Fields: map[string]*types.Value{
+										"local": &types.Value{
+											Kind: &types.Value_StructValue{
+												StructValue: &types.Struct{
+													Fields: map[string]*types.Value{
+														"filename": &types.Value{
+															Kind: &types.Value_StringValue{StringValue: f.Location},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"allow_precompiled": &types.Value{
+							Kind: &types.Value_BoolValue{BoolValue: true},
+						},
+					},
+				},
 			},
+		}
+
+		hc := &envoyhttp.HttpFilter_Config{
+			Config: &types.Struct{
+				Fields: map[string]*types.Value{
+					"config": &types.Value{Kind: &types.Value_StructValue{StructValue: config}},
+				},
+			},
+		}
+
+		ef := &envoyhttp.HttpFilter{
+			Name:       "envoy.filters.http.wasm",
+			ConfigType: hc,
+		}
+
+		filters = append(filters, ef)
+	}
+
+	// add the default router
+	filters = append(
+		filters,
+		&envoyhttp.HttpFilter{
+			Name: "envoy.router",
 		},
+	)
+
+	cfg := &envoyhttp.HttpConnectionManager{
+		StatPrefix:  makeStatPrefix(proto, statPrefix, filterName),
+		CodecType:   envoyhttp.AUTO,
+		HttpFilters: filters,
 		Tracing: &envoyhttp.HttpConnectionManager_Tracing{
 			OperationName: op,
 			// Don't trace any requests by default unless the client application

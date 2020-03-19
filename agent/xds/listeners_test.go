@@ -129,6 +129,19 @@ func TestListenersFromSnapshot(t *testing.T) {
 			},
 		},
 		{
+			name:   "http-upstream-with-wasm-filters",
+			create: proxycfg.TestConfigSnapshot,
+			setup: func(snap *proxycfg.ConfigSnapshot) {
+				snap.Proxy.Upstreams[0].Config["protocol"] = "http"
+				snap.Proxy.Upstreams[0].Config["wasm_filters"] = []WASMFilter{
+					WASMFilter{
+						Name:     "add_header",
+						Location: "./optimized.wasm",
+					},
+				}
+			},
+		},
+		{
 			name:   "splitter-with-resolver-redirect",
 			create: proxycfg.TestConfigSnapshotDiscoveryChain_SplitterWithResolverRedirectMultiDC,
 			setup:  nil,
