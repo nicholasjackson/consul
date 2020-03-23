@@ -48,7 +48,15 @@ type ProxyConfig struct {
 	// than the host port being advertised.
 	BindPort int `mapstructure:"bind_port"`
 
-	// WASMFilters allow Envoy WASM filters to be registers in the HTTP filtler chain
+	// WASMFilters allow Envoy WASM filters to be registers in the public
+	// listeners filter chain.
+	//
+	// Note: Filters will be applied in the same order they are defined in this list.
+	// For HTTP filters, the HTTP Router is always automatically added and will be
+	// the last item in the list.
+	//
+	// See https://docs.google.com/document/d/1YPbxuEIPwKsW4Ft73diHRBTUNbYIlrQHNnS9dXdn778/edit#
+	// for more info
 	WASMFilters []WASMFilter `mapstructure:"wasm_filters"`
 }
 
@@ -144,7 +152,12 @@ type UpstreamConfig struct {
 	// will be ignored if a discovery chain is active.
 	ClusterJSON string `mapstructure:"envoy_cluster_json"`
 
-	// WASMFilters allow Envoy WASM filters to be registers in the HTTP filtler chain
+	// WASMFilters allow Envoy WASM filters to be registers in the upstream
+	// listeners filter chain.
+	//
+	// Note: Filters will be applied in the same order they are defined in this list.
+	// For HTTP filters, the HTTP Router is always automatically added and will be
+	// the last item in the list.
 	WASMFilters []WASMFilter `mapstructure:"wasm_filters"`
 
 	// Protocol describes the upstream's service protocol. Valid values are "tcp",
@@ -162,9 +175,20 @@ type UpstreamConfig struct {
 	Limits UpstreamLimits `mapstructure:"limits"`
 }
 
+// WASMFilter defines a config block for an Envoy listener dynamically loadable WASM fitler.
 type WASMFilter struct {
-	Name     string `mapstructure:"name"`
+	// Name of the filter to be registered in the Filter chain
+	Name string `mapstructure:"name"`
+
+	// RootID is the main entry point for the WASM filter
+	RootID string `mapstructure:"name"`
+
+	// File location for the fitler WASM binary
 	Location string `mapstructure:"location"`
+
+	// Configuration is an arbitary string which is serialized to bytes and passed
+	// to proxy_on_configure when the plugin initializes.
+	Configuration string `mapstructure:"configuration"`
 }
 
 func ParseUpstreamConfigNoDefaults(m map[string]interface{}) (UpstreamConfig, error) {
